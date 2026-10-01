@@ -1,16 +1,33 @@
-#include <iostream>
 #include <irc/Server.hpp>
 #include <irc/Message.hpp>
-#include <queue>
-#include <vector>
-#include <poll.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 
-//ayo Vic, open the listening socket here
-Server::Server(int port, const std::string &pass): port(port), password(pass)
+Server::Server(const int port, const std::string& password) : password(password)
 {
+	listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
+	if (listen_fd == -1)
+		throw std::runtime_error(std::string("socket() error: ") + strerror(errno));
 
+	struct sockaddr_in addr = {};
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = INADDR_ANY;
 
+	if (bind(listen_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+		throw std::runtime_error(std::string("bind() error: ") + strerror(errno));
+
+	if (listen(listen_fd, listen_backlog) == -1)
+		throw std::runtime_error(std::string("listen() error: ") + strerror(errno));
+
+	std::cout << "server listening on port " << port << '\n';
 }
 
 Server::~Server(void)

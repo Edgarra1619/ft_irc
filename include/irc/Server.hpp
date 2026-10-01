@@ -10,9 +10,6 @@
 
 class Server
 {
-private:
-	static const int listen_backlog = 16;
-
 public:
 	std::string password;
 	std::vector<User> users;
@@ -21,8 +18,10 @@ public:
 	Server(int port, const std::string& password);
 	~Server(void);
 
-	void InitServerLoop(void);
+	void Loop(void);
 	void ProcessMessages(void);
+	void HandleConnection(void);
+	void CloseConnections(void);
 };
 
 #endif

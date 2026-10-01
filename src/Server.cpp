@@ -12,14 +12,16 @@
 
 Server::Server(const int port, const std::string& password) : password(password)
 {
-	listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
+	const int listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
 	if (listen_fd == -1)
 		throw std::runtime_error(std::string("socket() error: ") + strerror(errno));
 
-	struct sockaddr_in addr = {};
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
-	addr.sin_addr.s_addr = INADDR_ANY;
+	const struct sockaddr_in addr = {
+		.sin_family = AF_INET,
+		.sin_port = htons(port),
+		.sin_addr = { INADDR_ANY },
+		.sin_zero = { 0 }
+	};
 
 	if (bind(listen_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
 		throw std::runtime_error(std::string("bind() error: ") + strerror(errno));
@@ -27,12 +29,20 @@ Server::Server(const int port, const std::string& password) : password(password)
 	if (listen(listen_fd, listen_backlog) == -1)
 		throw std::runtime_error(std::string("listen() error: ") + strerror(errno));
 
+	const struct pollfd listen_poll_fd = {
+		.fd = listen_fd,
+		.events = POLLIN,
+		.revents = 0
+	};
+
+	poll_fds.push_back(listen_poll_fd);
+
 	std::cout << "server listening on port " << port << '\n';
 }
 
 Server::~Server(void)
 {
-	for (std::vector<struct pollfd>::iterator i = poll_fds.begin(); i < poll_fds.end(); i++)
+	for (std::vector<struct pollfd>::iterator i = poll_fds.begin(); i != poll_fds.end(); ++i)
 	{
 		close((*i).fd);
 	}

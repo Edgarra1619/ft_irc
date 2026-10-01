@@ -14,7 +14,6 @@ private:
 	static const int listen_backlog = 16;
 
 public:
-	int listen_fd;
 	std::string password;
 	std::vector<User> users;
 	std::vector<struct pollfd> poll_fds;

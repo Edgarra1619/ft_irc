@@ -26,6 +26,8 @@ Server::Server(const int port, const std::string& password) : password(password)
 	if (bind(listen_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
 		throw std::runtime_error(std::string("bind() error: ") + strerror(errno));
 
+	static const int listen_backlog = 16;
+
 	if (listen(listen_fd, listen_backlog) == -1)
 		throw std::runtime_error(std::string("listen() error: ") + strerror(errno));
 
@@ -48,18 +50,23 @@ Server::~Server(void)
 	}
 }
 
-void	Server::InitServerLoop()
+void Server::Loop(void)
 {
 	while (true)
 	{
-		//poll
+		poll(poll_fds.data(), poll_fds.size(), 1);
+
+		CloseConnections();
+
 		//receive messages from users
 		//process pending user messages
-		//Accept new connections
+
+		if (poll_fds.front().revents & POLLIN)
+			HandleConnection();
 	}
 }
 
-void	Server::ProcessMessages(void)
+void Server::ProcessMessages(void)
 {
 	for (std::vector<User>::iterator user = users.begin(); user < users.end(); user++)
 	{
@@ -70,5 +77,48 @@ void	Server::ProcessMessages(void)
 			std::cout << (std::string) *message << std::endl;
 			user->pending.pop();
 		}
+	}
+}
+
+void Server::HandleConnection(void)
+{
+	const int user_fd = accept(poll_fds.front().fd, NULL, NULL);
+	if (user_fd == -1)
+		throw std::runtime_error(std::string("accept() error: ") + strerror(errno));
+
+	const struct pollfd user_poll_fd = {
+		.fd = user_fd,
+		.events = POLLIN | POLLRDHUP,
+		.revents = 0
+	};
+
+	poll_fds.push_back(user_poll_fd);
+
+	const User user(user_fd);
+
+	users.push_back(user);
+
+	std::cout << "user connected\n";
+}
+
+void Server::CloseConnections(void)
+{
+	std::vector<struct pollfd>::iterator poll_fd = ++poll_fds.begin();
+	std::vector<User>::iterator user = users.begin();
+
+	while (poll_fd != poll_fds.end())
+	{
+		if (poll_fd->revents & (POLLERR | POLLHUP | POLLNVAL | POLLRDHUP))
+		{
+			close(poll_fd->fd);
+			poll_fd = poll_fds.erase(poll_fd);
+			user = users.erase(user);
+
+			std::cout << "closed user connection\n";
+
+			continue;
+		}
+		++poll_fd;
+		++user;
 	}
 }

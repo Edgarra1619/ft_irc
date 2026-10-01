@@ -1,21 +1,48 @@
-#include <iostream>
 #include <irc/Server.hpp>
 #include <irc/Message.hpp>
-#include <queue>
-#include <vector>
-#include <poll.h>
+
+#include <iostream>
+#include <cerrno>
+#include <cstring>
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <unistd.h>
 
-//ayo Vic, open the listening socket here
-Server::Server(int port, const std::string &pass): port(port), password(pass)
+Server::Server(const int port, const std::string& password) : password(password)
 {
+	const int listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
+	if (listen_fd == -1)
+		throw std::runtime_error(std::string("socket() error: ") + strerror(errno));
 
+	const struct sockaddr_in addr = {
+		.sin_family = AF_INET,
+		.sin_port = htons(port),
+		.sin_addr = { INADDR_ANY },
+		.sin_zero = { 0 }
+	};
 
+	if (bind(listen_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1)
+		throw std::runtime_error(std::string("bind() error: ") + strerror(errno));
+
+	if (listen(listen_fd, listen_backlog) == -1)
+		throw std::runtime_error(std::string("listen() error: ") + strerror(errno));
+
+	const struct pollfd listen_poll_fd = {
+		.fd = listen_fd,
+		.events = POLLIN,
+		.revents = 0
+	};
+
+	poll_fds.push_back(listen_poll_fd);
+
+	std::cout << "server listening on port " << port << '\n';
 }
 
 Server::~Server(void)
 {
-	for (std::vector<struct pollfd>::iterator i = poll_fds.begin(); i < poll_fds.end(); i++)
+	for (std::vector<struct pollfd>::iterator i = poll_fds.begin(); i != poll_fds.end(); ++i)
 	{
 		close((*i).fd);
 	}

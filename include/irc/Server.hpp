@@ -1,23 +1,28 @@
 #ifndef SERVER_HPP
-# define SERVER_HPP
-# include <irc/User.hpp>
-# include <irc/Channel.hpp>
-# include <vector>
-# include <poll.h>
+#define SERVER_HPP
+
+#include <irc/User.hpp>
+
+#include <string>
+#include <vector>
+
+#include <poll.h>
 
 class Server
 {
+private:
+	static const int listen_backlog = 16;
+
 public:
-	int	port;
-	std::string	password;
+	std::string password;
 	std::vector<User> users;
 	std::vector<struct pollfd> poll_fds;
 
-	void	InitServerLoop(void);
-	void	ProcessMessages(void);
-	Server(int port, const std::string &pass);
+	Server(int port, const std::string& password);
 	~Server(void);
-};
 
+	void InitServerLoop(void);
+	void ProcessMessages(void);
+};
 
 #endif

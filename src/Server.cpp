@@ -45,25 +45,24 @@ Server::Server(const int port, const std::string& password) : password(password)
 Server::~Server(void)
 {
 	for (std::vector<struct pollfd>::iterator i = poll_fds.begin(); i != poll_fds.end(); ++i)
-	{
-		close((*i).fd);
-	}
+		close(i->fd);
 }
 
 void Server::Loop(void)
 {
-	while (true)
-	{
-		poll(poll_fds.data(), poll_fds.size(), 1);
+	poll(poll_fds.data(), poll_fds.size(), 0);
 
-		CloseConnections();
+	CloseConnections();
 
-		//receive messages from users
-		//process pending user messages
+	std::vector<struct pollfd>::const_iterator poll_fd = ++poll_fds.begin();
+	std::vector<User>::iterator user = users.begin();
+	for (; user != users.end(); ++user, ++poll_fd)
+		user->Loop(poll_fd->revents);
 
-		if (poll_fds.front().revents & POLLIN)
-			HandleConnection();
-	}
+	//process pending user messages
+
+	if (poll_fds.front().revents & POLLIN)
+		HandleConnection();
 }
 
 void Server::ProcessMessages(void)

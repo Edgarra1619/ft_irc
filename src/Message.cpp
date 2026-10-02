@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+const std::string Message::delim = "\r\n";
 
 //separate string into message parts
 Message::Message(std::string str, const User& sender)

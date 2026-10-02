@@ -28,6 +28,7 @@ public:
 
 	void Loop(short events);
 	void ReceiveData(void);
+	void SplitMessages(void);
 	void SendTo(const std::string&);
 };
 

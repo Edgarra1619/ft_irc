@@ -10,18 +10,20 @@
 
 class Server
 {
+private:
 public:
-	std::string password;
-	std::vector<User> users;
-	std::vector<struct pollfd> poll_fds;
+	std::string					prefix;
+	std::string					password;
+	std::vector<User>			users;
+	std::vector<struct pollfd>	poll_fds;
 
 	Server(int port, const std::string& password);
 	~Server(void);
 
-	void Loop(void);
-	void ProcessMessages(void);
-	void HandleConnection(void);
-	void CloseConnections(void);
+	void	Loop(void);
+	void	ProcessMessages(void);
+	void	HandleConnection(void);
+	void	CloseConnections(void);
 };
 
 #endif

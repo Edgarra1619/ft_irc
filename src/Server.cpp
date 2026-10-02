@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-Server::Server(const int port, const std::string& password) : password(password)
+Server::Server(const int port, const std::string& password) : prefix("example.com"), password(password)
 {
 	const int listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
 	if (listen_fd == -1)
@@ -52,30 +52,136 @@ Server::~Server(void)
 
 void Server::Loop(void)
 {
-	while (true)
+	poll(poll_fds.data(), poll_fds.size(), 0);
+
+	CloseConnections();
+	for (std::size_t i = 0; i < users.size(); i++)
 	{
-		poll(poll_fds.data(), poll_fds.size(), 1);
-
-		CloseConnections();
-
-		//receive messages from users
-		//process pending user messages
-
-		if (poll_fds.front().revents & POLLIN)
-			HandleConnection();
+		if (poll_fds[i + 1].revents & POLLIN)
+			users[i].Receive();
 	}
+	ProcessMessages();
+	//receive messages from users
+	//process pending user messages
+
+	if (poll_fds.front().revents & POLLIN)
+		HandleConnection();
 }
 
 void Server::ProcessMessages(void)
 {
-	for (std::vector<User>::iterator user = users.begin(); user < users.end(); user++)
+	for (std::vector<User>::iterator user = users.begin(); user != users.end(); user++)
 	{
-		if (!user->pending.empty())
-			std::cout << user->nickname << ":" << std::endl;
-		for (Message *message = &user->pending.front(); user->pending.empty(); message = &user->pending.front())
+		for (;!user->pending.empty(); user->pending.pop())
 		{
-			std::cout << (std::string) *message << std::endl;
-			user->pending.pop();
+			Message *message = &user->pending.front();
+			std::cout << user->nickname << " sending:\n";
+			std::cout << (std::string) *message << std::flush;
+			if (message->command == "PING")
+			{
+				message->command = "PONG";
+				message->prefix = prefix;
+				user->SendTo(*message);
+			}
+			else if(message->command == "PASS")
+			{
+				//ERR_NEEDMOREPARAMS
+				//ERR_ALREADYREGISTRED
+			}
+			else if(message->command == "QUIT")
+			{
+			}
+			else if(message->command == "NICK")
+			{
+				//ERR_NONICKNAMEGIVEN
+				//ERR_ERRONEUSNICKNAME
+				//ERR_NICKNAMEINUSE
+				//ERR_NICKCOLLISION
+			}
+			else if(message->command == "USER")
+			{
+				//ERR_NEEDMOREPARAMS
+				//ERR_ALREADYREGISTRED
+			}
+			else if(message->command == "PRIVMSG")
+			{
+				//ERR_NOSUCHNICK
+				//ERR_CANNOTSENDTOCHAN
+				//ERR_TOOMANYTARGETS
+				//ERR_NORECIPIENT
+				//ERR_NOTEXTTOSEND
+				//ERR_NOTOPLEVEL
+				//ERR_WILDTOPLEVEL
+				//ERR_NOTREGISTERED
+			}
+			else if(message->command == "JOIN")
+			{
+				//RPL_NOTOPIC
+				//RPL_TOPIC
+				//RPL_NAMREPLY
+				//ERR_NOSUCHCHANNEL
+				//ERR_TOOMANYCHANNELS
+				//ERR_NEEDMOREPARAMS
+				//ERR_NOTREGISTERED
+				//ERR_CHANNELISFULL
+				//ERR_INVITEONLYCHAN
+				//ERR_BANNEDFROMCHAN
+				//ERR_BADCHANNELKEY
+			}
+			else if(message->command == "PART")
+			{
+				//ERR_NOSUCHCHANNEL
+				//ERR_NOTONCHANNEL
+				//ERR_NEEDMOREPARAMS
+				//ERR_NOTREGISTERED
+			}
+			else if(message->command == "KICK")
+			{
+				//ERR_NOSUCHCHANNEL
+				//ERR_NOTONCHANNEL
+				//ERR_NEEDMOREPARAMS
+				//ERR_NOTREGISTERED
+				//ERR_CHANOPRIVSNEEDED
+			}
+			else if(message->command == "INVITE")
+			{
+				//RPL_INVITING
+				//ERR_NOSUCHNICK
+				//ERR_NOTONCHANNEL
+				//ERR_USERONCHANNEL
+				//ERR_NEEDMOREPARAMS
+				//ERR_NOTREGISTERED
+				//ERR_CHANOPRIVSNEEDED
+			}
+			else if(message->command == "TOPIC")
+			{
+				//RPL_NOTOPIC
+				//RPL_TOPIC
+				//ERR_NEEDMOREPARAMS
+				//ERR_NOTONCHANNEL
+				//ERR_NOTREGISTERED
+				//ERR_CHANOPRIVSNEEDED
+			}
+			else if(message->command == "MODE")
+			{
+				//only implement channel mode
+				//
+				//RPL_CHANNELMODEIS
+				//RPL_BANLIST
+				//RPL_ENDOFBANLIST
+				//ERR_NOSUCHNICK
+				//ERR_NOTONCHANNEL
+				//ERR_NEEDMOREPARAMS
+				//ERR_CHANOPRIVSNEEDED
+				//ERR_KEYSET
+				//ERR_UNKNOWNMODE
+				//ERR_NOSUCHCHANNEL
+				//ERR_NOTREGISTERED
+			}
+			else
+			{
+				//ERR_UNKNOWNCOMMAND
+			}
 		}
 	}
 }

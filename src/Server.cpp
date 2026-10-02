@@ -52,18 +52,15 @@ Server::~Server(void)
 
 void Server::Loop(void)
 {
-	while (true)
-	{
-		poll(poll_fds.data(), poll_fds.size(), 1);
+	poll(poll_fds.data(), poll_fds.size(), 1);
 
-		CloseConnections();
+	CloseConnections();
 
-		//receive messages from users
-		//process pending user messages
+	//receive messages from users
+	//process pending user messages
 
-		if (poll_fds.front().revents & POLLIN)
-			HandleConnection();
-	}
+	if (poll_fds.front().revents & POLLIN)
+		HandleConnection();
 }
 
 void Server::ProcessMessages(void)

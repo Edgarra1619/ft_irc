@@ -29,7 +29,7 @@ void	Channel::SendTo(const Message& msg)
 {
 	for (std::map<User*, bool>::const_iterator i = users.begin(); i != users.end(); i++)
 	{
-		i->first->SendTo((std::string) msg);
+		i->first->SendData((std::string) msg);
 	}
 
 }

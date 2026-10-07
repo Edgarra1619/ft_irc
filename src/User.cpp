@@ -8,9 +8,9 @@
 #include <sys/socket.h>
 #include <poll.h>
 
-User::User(int fd) : fd(fd) {}
+User::User(const int fd) : fd(fd) {}
 
-bool User::operator<(const User& rhs)
+bool User::operator<(const User& rhs) const
 {
 	return (nickname < rhs.nickname);
 }
@@ -62,7 +62,8 @@ void User::SplitMessages(void)
 	}
 }
 
-void User::SendTo(const std::string& msg)
+void User::SendData(const std::string& data) const
 {
-	(void)msg;
+	if (send(fd, data.c_str(), data.size(), 0) == -1)
+		throw std::runtime_error(std::string("send() error: ") + strerror(errno));
 }

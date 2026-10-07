@@ -24,12 +24,12 @@ public:
 
 	User(int fd);
 
-	bool operator<(const User& rhs);
+	bool operator<(const User& rhs) const;
 
 	void Loop(short events);
 	void ReceiveData(void);
 	void SplitMessages(void);
-	void SendTo(const std::string&);
+	void SendData(const std::string& data) const;
 };
 
 #endif

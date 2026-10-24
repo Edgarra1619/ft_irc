@@ -79,7 +79,7 @@ void Server::ProcessMessages(void)
 			{
 				message->command = "PONG";
 				message->prefix = prefix;
-				user->SendTo(*message);
+				user->SendData(*message);
 			}
 			else if(message->command == "PASS")
 			{

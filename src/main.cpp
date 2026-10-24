@@ -1,12 +1,18 @@
 #include <irc/Server.hpp>
+#include <irc/utils.hpp>
 
 #include <iostream>
 
-int main(void)
+int main(int argc, char **argv)
 {
+	if (argc != 3)
+	{
+		std::cerr << "Expected 2 arguments, got " << argc - 1 << std::endl;
+		return (1);
+	}
 	try
 	{
-		Server server(2000, "password");
+		Server server(parse_num(argv[1], "port"), argv[2]);
 		while (true)
 			server.Loop();
 	}

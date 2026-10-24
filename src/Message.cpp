@@ -5,11 +5,15 @@
 
 const std::string Message::delim = "\r\n";
 
+//FIX:
+//If a parameter starts with :, then it is the last parameter an can include 0x20 <SPACE>
+
+
 //separate string into message parts
 Message::Message(std::string str, const User& sender)
 {
 	if (str[0] != ':')
-		prefix = ":" + sender.nickname;
+		prefix = sender.nickname;
 	else
 	{
 		prefix = str.substr(0, str.find_first_of(' '));
@@ -42,7 +46,9 @@ Message::operator std::string() const
 {
 	std::string	str;
 
-	str = prefix + " " + command;
+	if (!prefix.empty())
+		str = ':' + prefix + ' ';
+	str += command;
 	for (std::vector<std::string>::const_iterator i = params.begin(); i < params.end(); i++)
 	{
 		str += " " + *i;

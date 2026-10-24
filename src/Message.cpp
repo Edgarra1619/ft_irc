@@ -5,10 +5,6 @@
 
 const std::string Message::delim = "\r\n";
 
-//FIX:
-//If a parameter starts with :, then it is the last parameter an can include 0x20 <SPACE>
-
-
 //separate string into message parts
 Message::Message(std::string str, const User& sender)
 {
@@ -23,6 +19,11 @@ Message::Message(std::string str, const User& sender)
 	while (str.find_first_not_of(' ', str.find_first_of(' ')) != std::string::npos)
 	{
 		str.erase(0, str.find_first_not_of(' ', str.find_first_of(' ')));
+		if (str[0] == ':')
+		{
+			params.push_back(str.substr(1));
+			break;
+		}
 		params.push_back(str.substr(0, str.find_first_of(' ')));
 	}
 }
@@ -38,6 +39,11 @@ Message::Message(std::string str)
 	while (str.find_first_not_of(' ', str.find_first_of(' ')) != std::string::npos)
 	{
 		str.erase(0, str.find_first_not_of(' ', str.find_first_of(' ')));
+		if (str[0] == ':')
+		{
+			params.push_back(str.substr(1));
+			break;
+		}
 		params.push_back(str.substr(0, str.find_first_of(' ')));
 	}
 }
@@ -51,7 +57,10 @@ Message::operator std::string() const
 	str += command;
 	for (std::vector<std::string>::const_iterator i = params.begin(); i < params.end(); i++)
 	{
-		str += " " + *i;
+		str += " ";
+		if ((*i).find(" "))
+			str += ":";
+		str += *i;
 	}
 	return (str);
 }

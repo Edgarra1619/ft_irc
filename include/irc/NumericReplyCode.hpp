@@ -1,7 +1,7 @@
 #ifndef NUMERICREPLIES_HPP
 #define NUMERICREPLIES_HPP
 
-enum NumericReplies
+enum NumericReplyCode
 {
 	//NORMAL REPLIES
 	RPL_CHANNELMODEIS = 324,
@@ -41,5 +41,7 @@ enum NumericReplies
 	ERR_BADCHANNELKEY = 475,
 	ERR_CHANOPRIVSNEEDED = 482,
 };
+
+
 
 #endif

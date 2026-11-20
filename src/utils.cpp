@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <irc/utils.hpp>
 #include <stdexcept>
+#include <irc/NumericReplyCodes.hpp>
 
 //atoi that throws an exception when the str isn't a number
 int parse_num(const std::string &str, const std::string &name = "str")
@@ -12,4 +13,14 @@ int parse_num(const std::string &str, const std::string &name = "str")
 			throw(std::invalid_argument(name + " isn't number"));
 	}
 	return (std::atoi(str.c_str()));
+}
+
+std::string	NumericReplyString(NumericReplyCode a, const std::string &prefix)
+{
+	std::ostringstream str;
+	std::string as;
+
+	str << prefix << a;
+
+	return (str.str());
 }

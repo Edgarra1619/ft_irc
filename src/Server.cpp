@@ -1,10 +1,13 @@
 #include <irc/Server.hpp>
 #include <irc/Message.hpp>
+#include <irc/NumericReplyCode.hpp>
+#include <irc/utils.hpp>
 
 #include <iostream>
 #include <cerrno>
 #include <cstring>
 
+#include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -77,20 +80,28 @@ void Server::ProcessMessages(void)
 			std::cout << (std::string) *message << std::flush;
 			if (message->command == "PING")
 			{
+				//respond to a pong
+
 				message->command = "PONG";
 				message->prefix = prefix;
 				user->SendData(*message);
 			}
 			else if(message->command == "PASS")
 			{
+				//store the connection password for registering, but do not validate
+
 				//ERR_NEEDMOREPARAMS
 				//ERR_ALREADYREGISTRED
 			}
 			else if(message->command == "QUIT")
 			{
+				//Disconnect this user
+
 			}
 			else if(message->command == "NICK")
 			{
+				//Validate and store User.nickname
+
 				//ERR_NONICKNAMEGIVEN
 				//ERR_ERRONEUSNICKNAME
 				//ERR_NICKNAMEINUSE
@@ -98,11 +109,15 @@ void Server::ProcessMessages(void)
 			}
 			else if(message->command == "USER")
 			{
+				//Validate and store User.username
+
 				//ERR_NEEDMOREPARAMS
 				//ERR_ALREADYREGISTRED
 			}
 			else if(message->command == "PRIVMSG")
 			{
+				//Send message to user or channel, if possible
+
 				//ERR_NOSUCHNICK
 				//ERR_CANNOTSENDTOCHAN
 				//ERR_TOOMANYTARGETS
@@ -114,6 +129,8 @@ void Server::ProcessMessages(void)
 			}
 			else if(message->command == "JOIN")
 			{
+				//Join a channel(s). If it doesn't exist, create it
+
 				//RPL_NOTOPIC
 				//RPL_TOPIC
 				//RPL_NAMREPLY
@@ -128,6 +145,8 @@ void Server::ProcessMessages(void)
 			}
 			else if(message->command == "PART")
 			{
+				//Leave a channel(s)
+
 				//ERR_NOSUCHCHANNEL
 				//ERR_NOTONCHANNEL
 				//ERR_NEEDMOREPARAMS
@@ -135,6 +154,8 @@ void Server::ProcessMessages(void)
 			}
 			else if(message->command == "KICK")
 			{
+				//Kick someone from a channel
+
 				//ERR_NOSUCHCHANNEL
 				//ERR_NOTONCHANNEL
 				//ERR_NEEDMOREPARAMS
@@ -143,6 +164,8 @@ void Server::ProcessMessages(void)
 			}
 			else if(message->command == "INVITE")
 			{
+				//Invite people to a channel
+
 				//RPL_INVITING
 				//ERR_NOSUCHNICK
 				//ERR_NOTONCHANNEL
@@ -153,6 +176,8 @@ void Server::ProcessMessages(void)
 			}
 			else if(message->command == "TOPIC")
 			{
+				//Change the channel topic
+
 				//RPL_NOTOPIC
 				//RPL_TOPIC
 				//ERR_NEEDMOREPARAMS
@@ -162,8 +187,8 @@ void Server::ProcessMessages(void)
 			}
 			else if(message->command == "MODE")
 			{
-				//only implement channel mode
-				//
+				//Change channel modes (ft_irc does not implement user modes)
+
 				//RPL_CHANNELMODEIS
 				//RPL_BANLIST
 				//RPL_ENDOFBANLIST
@@ -178,6 +203,7 @@ void Server::ProcessMessages(void)
 			}
 			else
 			{
+				user->SendData(NumericReplyString(ERR_UNKNOWNCOMMAND, ":" + prefix + " "));
 				//ERR_UNKNOWNCOMMAND
 			}
 		}

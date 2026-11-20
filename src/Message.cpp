@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <irc/Message.hpp>
 #include <irc/User.hpp>
 #include <string>
@@ -21,10 +22,10 @@ Message::Message(std::string str, const User& sender)
 		str.erase(0, str.find_first_not_of(' ', str.find_first_of(' ')));
 		if (str[0] == ':')
 		{
-			params.push_back(str.substr(1));
+			params.push_back(str.substr(1, str.find_first_of("\r\n")));
 			break;
 		}
-		params.push_back(str.substr(0, str.find_first_of(' ')));
+		params.push_back(str.substr(0, std::min(str.find_first_of(' '), str.find_first_of("\r\n"))));
 	}
 }
 
@@ -41,10 +42,10 @@ Message::Message(std::string str)
 		str.erase(0, str.find_first_not_of(' ', str.find_first_of(' ')));
 		if (str[0] == ':')
 		{
-			params.push_back(str.substr(1));
+			params.push_back(str.substr(1, str.find_first_of("\r\n")));
 			break;
 		}
-		params.push_back(str.substr(0, str.find_first_of(' ')));
+		params.push_back(str.substr(0, std::min(str.find_first_of(' '), str.find_first_of("\r\n"))));
 	}
 }
 
@@ -58,7 +59,7 @@ Message::operator std::string() const
 	for (std::vector<std::string>::const_iterator i = params.begin(); i < params.end(); i++)
 	{
 		str += " ";
-		if ((*i).find(" "))
+		if ((*i).find(" ") != std::string::npos)
 			str += ":";
 		str += *i;
 	}

@@ -203,7 +203,7 @@ void Server::ProcessMessages(void)
 			}
 			else
 			{
-				user->SendData(NumericReplyString(ERR_UNKNOWNCOMMAND, ":" + prefix + " "));
+				user->SendData(":" + prefix + " " + NumericReplyString(ERR_UNKNOWNCOMMAND) + "\r\n");
 				//ERR_UNKNOWNCOMMAND
 			}
 		}

@@ -7,28 +7,6 @@
 const std::string Message::delim = "\r\n";
 
 //separate string into message parts
-Message::Message(std::string str, const User& sender)
-{
-	if (str[0] != ':')
-		prefix = sender.nickname;
-	else
-	{
-		prefix = str.substr(0, str.find_first_of(' '));
-		str.erase(0, str.find_first_not_of(' ', str.find_first_of(' ')));
-	}
-	command = str.substr(0, str.find_first_of(' '));
-	while (str.find_first_not_of(' ', str.find_first_of(' ')) != std::string::npos)
-	{
-		str.erase(0, str.find_first_not_of(' ', str.find_first_of(' ')));
-		if (str[0] == ':')
-		{
-			params.push_back(str.substr(1, str.find_first_of("\r\n")));
-			break;
-		}
-		params.push_back(str.substr(0, std::min(str.find_first_of(' '), str.find_first_of("\r\n"))));
-	}
-}
-
 Message::Message(std::string str)
 {
 	if (str[0] == ':')

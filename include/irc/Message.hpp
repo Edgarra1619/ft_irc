@@ -15,7 +15,6 @@ struct Message
 	std::string command;
 	std::vector<std::string> params;
 
-	Message(std::string, const User&);
 	Message(std::string str);
 
 	operator std::string() const;

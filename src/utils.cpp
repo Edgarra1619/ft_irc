@@ -1,8 +1,10 @@
+#include <irc/utils.hpp>
+#include <irc/NumericReplyCode.hpp>
+#include <sstream>
+
 #include <cctype>
 #include <cstdlib>
-#include <irc/utils.hpp>
 #include <stdexcept>
-#include <irc/NumericReplyCodes.hpp>
 
 //atoi that throws an exception when the str isn't a number
 int parse_num(const std::string &str, const std::string &name = "str")
